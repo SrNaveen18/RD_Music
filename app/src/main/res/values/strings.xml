@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">RD_Music</string>
+
+    <string name="ScrollAwareAppBarBehaviour">com.example.naveen.rd_music.cobehavior.ScrollAwareAppBarBehaviour</string>
+</resources>
