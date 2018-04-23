@@ -5,16 +5,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -22,14 +24,19 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.example.naveen.rd_music.business.SongsApdater;
+import com.example.naveen.rd_music.helper.SeekBarUpdate;
 import com.example.naveen.rd_music.modal.SongList;
 import com.example.naveen.rd_music.services.BackGroundServices;
+
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class HomeActivity extends AppCompatActivity implements HomeView, View.OnClickListener {
+public class HomeActivity extends AppCompatActivity implements HomeView,View.OnClickListener,SeekBarUpdate {
 
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.valdioveliu.valdio.audioplayer.PlayNewAudio";
 
@@ -56,6 +63,11 @@ public class HomeActivity extends AppCompatActivity implements HomeView, View.On
     @BindView(R.id.seekBar)
     SeekBar seekBar;
 
+    @BindView(R.id.txtCurrentTime)
+    TextView txtCurrentTime;
+    @BindView(R.id.txtTotalTime)
+    TextView txtTotalTime;
+
     private HomePresenter homePresenter;
     private BottomSheetBehavior bottomSheetBehavior;
     private List<SongList> songLists;
@@ -64,6 +76,8 @@ public class HomeActivity extends AppCompatActivity implements HomeView, View.On
     private BackGroundServices player;
     boolean serviceBound = false;
 
+    private long maxSecond = 0;
+    private long maxMinutes = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,18 +103,10 @@ public class HomeActivity extends AppCompatActivity implements HomeView, View.On
                     case BottomSheetBehavior.STATE_COLLAPSED:
                         lnrbtmSongName.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
                         txtSongName.setTextColor(Color.WHITE);
-//                        appBarLayout.animate()
-//                                .translationY(0)
-//                                .alpha(1).setDuration(100)
-//                                .setInterpolator(new DecelerateInterpolator());
                         break;
                     case BottomSheetBehavior.STATE_DRAGGING:
                         lnrbtmSongName.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
                         txtSongName.setTextColor(Color.WHITE);
-//                        appBarLayout.animate()
-//                                .translationY(0)
-//                                .alpha(1).setDuration(100)
-//                                .setInterpolator(new DecelerateInterpolator());
                         break;
                     case BottomSheetBehavior.STATE_EXPANDED:
                         lnrbtmSongName.setBackgroundColor(Color.WHITE);
@@ -155,7 +161,7 @@ public class HomeActivity extends AppCompatActivity implements HomeView, View.On
 
     @Override
     public void startPlayAudio() {
-        if (clickedSongList!=null){
+        if (clickedSongList != null) {
             playAudio(clickedSongList.getSongPath());
         }
     }
@@ -176,6 +182,9 @@ public class HomeActivity extends AppCompatActivity implements HomeView, View.On
             serviceBound = true;
 
             Toast.makeText(HomeActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
+            player.registerHomeActivity(HomeActivity.this);
+
+
         }
 
         @Override
@@ -194,7 +203,6 @@ public class HomeActivity extends AppCompatActivity implements HomeView, View.On
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         } else {
-
             player.nextSong(media);
             //Service is active
             //Send media with BroadcastReceiver
@@ -221,6 +229,46 @@ public class HomeActivity extends AppCompatActivity implements HomeView, View.On
             unbindService(serviceConnection);
             //service is active
             player.stopSelf();
+        }
+    }
+
+
+    private Handler handler = new Handler();
+
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (player.getMediaPlayer() != null) {
+                seekBar.setProgress(player.getMediaPlayer().getCurrentPosition());
+                Log.w("HOMECurrentPosition", player.getMediaPlayer().getCurrentPosition() + "");
+
+                long audioSeconds = TimeUnit.MILLISECONDS.toSeconds(seekBar.getProgress());
+                long audioMinutes = TimeUnit.MILLISECONDS.toMinutes(seekBar.getProgress());
+                if (audioSeconds >= 60) {
+                    audioSeconds = audioSeconds % 60;
+                }
+                if (audioMinutes >= 60) {
+                    audioMinutes = audioMinutes % 60;
+                }
+                txtCurrentTime.setText(audioMinutes +"\t"+":" + audioSeconds);
+                maxSecond = TimeUnit.MILLISECONDS.toSeconds(seekBar.getMax());
+                maxMinutes = TimeUnit.MILLISECONDS.toMinutes(seekBar.getMax());
+                if (maxSecond >= 60) {
+                    maxSecond = maxSecond % 60;
+                }
+                txtTotalTime.setText(maxMinutes +"\t"+":" + maxSecond);
+                handler.postDelayed(runnable, 1000);
+            }
+        }
+    };
+
+    @Override
+    public void mediaPlayerInitialized() {
+        if (player.getMediaPlayer() != null) {
+            seekBar.setMax(player.getMediaPlayer().getDuration());
+            Log.w("HOMEDuration", player.getMediaPlayer().getDuration() + "");
+            handler.postDelayed(runnable, 1000);
+            seekBar.setOnSeekBarChangeListener(player);
         }
     }
 }

@@ -10,34 +10,34 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:id="@+id/appBarLayout"
+        android:background="@color/colorPrimary"
         app:layout_behavior="@string/ScrollAwareAppBarBehaviour">
 
         <android.support.v7.widget.Toolbar
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/toolBar">
+            android:id="@+id/toolBar"
+            app:subtitleTextColor="@android:color/white"
+            app:titleTextColor="@android:color/white"
+            app:subtitle="Enjoy the music"
+            app:title="@string/app_name">
         </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="56dp"
-        android:layout_marginTop="56dp"
-     >
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
+            android:layout_marginBottom="56dp"
+            android:layout_marginTop="56dp"
             android:layout_height="match_parent" />
-    </LinearLayout>
+
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center" />
-
 
 
     <include layout="@layout/bottomsheet"

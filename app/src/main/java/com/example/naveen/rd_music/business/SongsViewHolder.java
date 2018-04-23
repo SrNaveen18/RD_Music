@@ -4,6 +4,7 @@ package com.example.naveen.rd_music.business;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
@@ -14,6 +15,7 @@ import com.bumptech.glide.Glide;
 import com.example.naveen.rd_music.HomeActivity;
 import com.example.naveen.rd_music.R;
 import com.example.naveen.rd_music.modal.SongList;
+
 
 import java.io.File;
 
@@ -40,7 +42,13 @@ class SongsViewHolder extends RecyclerView.ViewHolder {
         txtSongName.setOnClickListener(listener);
 
        // Bitmap bitmap = BitmapFactory.decodeFile(songList.getAlbumArtPath());
-        imgAlbumArt.setImageBitmap(songList.getBitmap());
+
+        if (songList.getBitmap()!=null){
+            imgAlbumArt.setImageBitmap(songList.getBitmap());
+        }
+        else {
+            imgAlbumArt.setImageResource(R.drawable.default_avatar);
+        }
 
 //        Uri uri = Uri.fromFile(new File(songList.getAlbumArtPath()));
 //        Glide.with(homeActivity).load(uri).into(imgAlbumArt);

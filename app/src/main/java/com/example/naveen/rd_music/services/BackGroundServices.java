@@ -18,6 +18,8 @@ import android.support.v4.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.SeekBar;
+import android.widget.Toast;
 
 import com.example.naveen.rd_music.HomeActivity;
 import com.example.naveen.rd_music.R;
@@ -30,13 +32,15 @@ public class BackGroundServices extends Service implements MediaPlayer.OnBufferi
         , MediaPlayer.OnSeekCompleteListener
         , MediaPlayer.OnInfoListener
         , MediaPlayer.OnErrorListener,
-        MediaPlayer.OnPreparedListener, AudioManager.OnAudioFocusChangeListener {
+        MediaPlayer.OnPreparedListener, AudioManager.OnAudioFocusChangeListener, SeekBar.OnSeekBarChangeListener {
 
     public static final String ACTION_PLAY = "com.valdioveliu.valdio.audioplayer.ACTION_PLAY";
     public static final String ACTION_PAUSE = "com.valdioveliu.valdio.audioplayer.ACTION_PAUSE";
     public static final String ACTION_PREVIOUS = "com.valdioveliu.valdio.audioplayer.ACTION_PREVIOUS";
     public static final String ACTION_NEXT = "com.valdioveliu.valdio.audioplayer.ACTION_NEXT";
     public static final String ACTION_STOP = "com.valdioveliu.valdio.audioplayer.ACTION_STOP";
+
+    private HomeActivity homeActivity;
 
 
     private IBinder iBinder = new LocalBinder();
@@ -173,6 +177,21 @@ public class BackGroundServices extends Service implements MediaPlayer.OnBufferi
 
     }
 
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+//           mediaPlayer.seekTo(i);
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        mediaPlayer.seekTo(seekBar.getProgress());
+    }
+
     public class LocalBinder extends Binder {
         public BackGroundServices getServices() {
             return BackGroundServices.this;
@@ -210,26 +229,35 @@ public class BackGroundServices extends Service implements MediaPlayer.OnBufferi
     private void playMedia() {
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
+            if (homeActivity != null) {
+                homeActivity.mediaPlayerInitialized();
+            }
         }
     }
 
-    private void stopMedia() {
+    public void stopMedia() {
         if (mediaPlayer == null)
             return;
 
-        if (mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
+
+        try {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
+        }catch (IllegalStateException e){
+            e.printStackTrace();
         }
+
     }
 
-    private void pauseMedia() {
+    public void pauseMedia() {
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
             resumePosition = mediaPlayer.getCurrentPosition();
         }
     }
 
-    private void resumeMedia() {
+    public void resumeMedia() {
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.seekTo(resumePosition);
             mediaPlayer.start();
@@ -456,4 +484,11 @@ public class BackGroundServices extends Service implements MediaPlayer.OnBufferi
     }*/
 
 
+    public MediaPlayer getMediaPlayer() {
+        return mediaPlayer;
+    }
+
+    public void registerHomeActivity(HomeActivity homeActivity) {
+        this.homeActivity = (HomeActivity) homeActivity;
+    }
 }

@@ -61,6 +61,8 @@ public class ScrollAwareAppBarBehaviour extends AppBarLayout.ScrollingViewBehavi
         Log.w("Nested", child.getHeight() + ">>>>>>>>" + dependency.getY());
 
 
+        Log.w("VERIFICATION", nestedScrollViewHeight+ ">>>>>>>>" + dependency.getY());
+
         if (nestedScrollViewHeight > dependency.getY()) {
             hideToolbarAnim(child);
             // child.setVisibility(View.GONE);
